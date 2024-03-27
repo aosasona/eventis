@@ -60,7 +60,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("com.lambdapioneer.argon2kt:argon2kt:1.5.0")
     implementation(libs.androidx.navigation.compose)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

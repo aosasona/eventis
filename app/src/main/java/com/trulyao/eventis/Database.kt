@@ -6,10 +6,11 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.trulyao.eventis.models.Event
 import com.trulyao.eventis.models.User
 
-class Database(context: Context): SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class Database(context: Context) :
+    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         const val DATABASE_NAME = "eventis.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 5
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -30,5 +31,8 @@ class Database(context: Context): SQLiteOpenHelper(context, DATABASE_NAME, null,
 
         db.execSQL(Event.MIGRATION_DOWN)
         db.execSQL(User.MIGRATION_DOWN)
+
+        db.execSQL(User.MIGRATION_UP)
+        db.execSQL(Event.MIGRATION_UP)
     }
 }
