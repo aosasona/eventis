@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -54,6 +55,7 @@ fun Home(database: Database, navController: NavController, userId: Int?) {
     val events = remember { mutableStateListOf<EventModel>() }
 
     // Modal state
+    var isLoadingEvents by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var savingEvent by remember { mutableStateOf(false) }
@@ -73,11 +75,16 @@ fun Home(database: Database, navController: NavController, userId: Int?) {
     }
 
     fun load() {
-        scope.launch {
-            val userEvents = Event(database.readableDatabase).findEventsByUserID(userId)
-            events.clear()
-            events.addAll(userEvents)
-        }
+        if (isLoadingEvents) return;
+        isLoadingEvents = true
+        val userEvents = Event(database.readableDatabase).findEventsByUserID(userId)
+        events.clear()
+        events.addAll(userEvents)
+        isLoadingEvents = false
+    }
+
+    LaunchedEffect("home") {
+        load()
     }
 
 

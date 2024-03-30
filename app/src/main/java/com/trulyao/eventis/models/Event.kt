@@ -6,14 +6,30 @@ import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.trulyao.eventis.utils.AppException
 
-data class EventModel(
-    val id: Int?,
-    val title: String?,
-    val description: String?,
-    val isCompleted: Boolean?,
-    val userId: Int?,
-    val createdAt: Int?,
-)
+class EventModel(
+    id: Int?,
+    title: String?,
+    description: String?,
+    isCompleted: Boolean?,
+    userId: Int?,
+    createdAt: Int?,
+) {
+    private val id: Int?;
+    private val title: String?;
+    private val description: String?;
+    private val isCompleted: Boolean?;
+    private val userId: Int?;
+    private val createdAt: Int?;
+
+    init {
+        this.id = id
+        this.title = title
+        this.description = description
+        this.isCompleted = isCompleted
+        this.userId = userId
+        this.createdAt = createdAt
+    }
+}
 
 class Event(database: SQLiteDatabase) {
     private val database: SQLiteDatabase;
