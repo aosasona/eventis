@@ -1,6 +1,7 @@
 package com.trulyao.eventis.views
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -31,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -42,12 +45,13 @@ import com.trulyao.eventis.models.Event
 import com.trulyao.eventis.models.EventModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Home(database: Database, navController: NavController, userId: Int?) {
     if (userId == 0 || userId == null) return;
 
     val context = LocalContext.current
+    val eventsInstance = Event(database.readableDatabase)
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -63,6 +67,16 @@ fun Home(database: Database, navController: NavController, userId: Int?) {
         derivedStateOf { title.trim().isNotEmpty() }
     }
 
+
+    fun load() {
+        if (isLoadingEvents) return;
+        isLoadingEvents = true
+        val userEvents = eventsInstance.findEventsByUserID(userId)
+        events.clear()
+        events.addAll(userEvents)
+        isLoadingEvents = false
+    }
+
     fun saveEvent() {
         scope.launch {
             savingEvent = false
@@ -70,17 +84,14 @@ fun Home(database: Database, navController: NavController, userId: Int?) {
             if (userId == 0 || userId == null) return@launch;
             event.createEvent(title, description, userId)
             Toast.makeText(context, "New event added!", Toast.LENGTH_SHORT).show()
-            savingEvent = false
-        }
-    }
 
-    fun load() {
-        if (isLoadingEvents) return;
-        isLoadingEvents = true
-        val userEvents = Event(database.readableDatabase).findEventsByUserID(userId)
-        events.clear()
-        events.addAll(userEvents)
-        isLoadingEvents = false
+            title = ""
+            description = ""
+            savingEvent = false
+            showBottomSheet = false
+
+            load()
+        }
     }
 
     LaunchedEffect("home") {
@@ -153,8 +164,27 @@ fun Home(database: Database, navController: NavController, userId: Int?) {
         }
 
         LazyColumn(modifier = Modifier.padding(contentPadding)) {
+            stickyHeader {
+                Text(
+                    text = "Events",
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight(700),
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                )
+            }
+
             items(events) { event ->
-                Row {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                ) {
+                    Checkbox(
+                        checked = event.isCompleted.value,
+                        onCheckedChange = { event.updateIsCompleted(eventsInstance, it) }
+                    )
+
+                    Spacer(modifier = Modifier.size(5.dp))
+
                     Text(text = event.title ?: "")
                 }
             }

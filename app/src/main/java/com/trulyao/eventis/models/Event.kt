@@ -2,32 +2,23 @@ package com.trulyao.eventis.models
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.trulyao.eventis.utils.AppException
 
 class EventModel(
-    id: Int?,
-    title: String?,
-    description: String?,
-    isCompleted: Boolean?,
-    userId: Int?,
-    createdAt: Int?,
+    val id: Int?,
+    val title: String?,
+    val description: String?,
+    var isCompleted: MutableState<Boolean>,
+    val userId: Int?,
+    val createdAt: Int?,
 ) {
-    private val id: Int?;
-    private val title: String?;
-    private val description: String?;
-    private val isCompleted: Boolean?;
-    private val userId: Int?;
-    private val createdAt: Int?;
-
-    init {
-        this.id = id
-        this.title = title
-        this.description = description
-        this.isCompleted = isCompleted
-        this.userId = userId
-        this.createdAt = createdAt
+    public fun updateIsCompleted(model: Event, value: Boolean) {
+        this.isCompleted.value = value
+        model.updateIsCompleted(this.id!!, value)
     }
 }
 
@@ -78,7 +69,13 @@ class Event(database: SQLiteDatabase) {
                 id = cursor.getIntOrNull(cursor.getColumnIndex(COLUMN_ID)),
                 title = cursor.getStringOrNull(cursor.getColumnIndex(COLUMN_TITLE)),
                 description = cursor.getStringOrNull(cursor.getColumnIndex(COLUMN_DESCRIPTION)),
-                isCompleted = cursor.getIntOrNull(cursor.getColumnIndex(COLUMN_COMPLETED)) == 1,
+                isCompleted = mutableStateOf(
+                    cursor.getIntOrNull(
+                        cursor.getColumnIndex(
+                            COLUMN_COMPLETED
+                        )
+                    ) == 1
+                ),
                 userId = cursor.getIntOrNull(cursor.getColumnIndex(COLUMN_USER_ID)),
                 createdAt = cursor.getIntOrNull(cursor.getColumnIndex(COLUMN_CREATED_AT)),
             )
@@ -102,5 +99,14 @@ class Event(database: SQLiteDatabase) {
         if (result <= 0) {
             throw AppException("Failed to save event, please try again")
         }
+    }
+
+    public fun updateIsCompleted(id: Int, value: Boolean) {
+        val values = ContentValues()
+        values.put(COLUMN_COMPLETED, if (value) 1 else 0)
+
+        val result =
+            this.database.update(TABLE_NAME, values, "$COLUMN_ID = ?", arrayOf(id.toString()))
+        if (result <= 0) throw AppException("Failed to save event, please try again")
     }
 }
